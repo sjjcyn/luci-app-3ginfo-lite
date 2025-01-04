@@ -275,16 +275,6 @@ if [ -n "$NETUP" ]; then
 		fi
 fi
 
-# CSQ
-CSQ=$(echo "$O" | awk -F[,\ ] '/^\+CSQ/ {print $2}')
-
-[ "x$CSQ" == "x" ] && CSQ=-1
-if [ $CSQ -ge 0 -a $CSQ -le 31 ]; then
-	CSQ_PER=$(($CSQ * 100/31))
-else
-	CSQ=""
-	CSQ_PER=""
-fi
 
 # COPS numeric
 # see https://mcc-mnc.com/
@@ -457,7 +447,22 @@ if [ -e /usr/bin/sms_tool ]; then
 fi
 
 fi
+MAX_RSRP=-44
+MIN_RSRP=-140
 
+# 计算信号强度并直接赋值给 signal
+signal=$(echo "scale=1; ($RSRP - $MIN_RSRP) / ($MAX_RSRP - $MIN_RSRP) * 100" | bc)
+RSSI=$(( ($RSRP + 113) / 2 ))
+# CSQ
+CSQ=$(echo "$O" | awk -F[,\ ] '/^\+CSQ/ {print $2}')
+
+[ "x$CSQ" == "x" ] && CSQ=-1
+if [ $CSQ -ge 0 -a $CSQ -le 31 ]; then
+	CSQ_PER=$(($CSQ * 100/31))
+else
+	CSQ="$RSSI"
+	CSQ_PER="$signal"
+fi
 
 cat <<EOF
 {
