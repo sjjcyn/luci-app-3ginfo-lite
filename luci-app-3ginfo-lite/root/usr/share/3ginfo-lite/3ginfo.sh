@@ -451,8 +451,7 @@ MAX_RSRP=-44
 MIN_RSRP=-140
 
 # 计算信号强度并直接赋值给 signal
-signal=$(echo "scale=1; ($RSRP - $MIN_RSRP) / ($MAX_RSRP - $MIN_RSRP) * 100" | bc)
-RSSI=$(( ($RSRP + 113) / 2 ))
+
 # CSQ
 CSQ=$(echo "$O" | awk -F[,\ ] '/^\+CSQ/ {print $2}')
 
@@ -460,8 +459,23 @@ CSQ=$(echo "$O" | awk -F[,\ ] '/^\+CSQ/ {print $2}')
 if [ $CSQ -ge 0 -a $CSQ -le 31 ]; then
 	CSQ_PER=$(($CSQ * 100/31))
 else
-	CSQ="$RSSI"
-	CSQ_PER="$signal"
+
+ ss_rsrq=$(echo $result | cut -d',' -f1)
+ ss_rsrp=$(echo $result | cut -d',' -f2)
+ ss_sinr=$(echo $result | cut -d',' -f3)
+ result=$(sms_tool -D -d /dev/ttyUSB3 at 'AT+CESQ' | grep '+CESQ:' | cut -d',' -f7-9)
+ ss_rsrq=$(echo $result | cut -d',' -f1)
+ ss_rsrp=$(echo $result | cut -d',' -f2)
+ ss_sinr=$(echo $result | cut -d',' -f3)
+ RSRQ=$(awk "BEGIN {print (-43 + $ss_rsrq * 0.5)}")
+ RSRP=$(awk "BEGIN {print (-156 + $ss_rsrp)}")
+ SINR=$(awk "BEGIN {print (-23 + $ss_sinr * 0.5)}")
+ SI=$(( ($RSRP + 156) * 100 / 126 ))
+ #RSSI=$(( ($RSRP / $RSRQ )))
+ RSSI=$(echo "scale=2; $RSRP / $RSRQ" | bc)
+ CSQ=$(( ($RSRP + 113) / 2 ))  
+ CSQ_PER=$SI
+
 fi
 
 cat <<EOF
