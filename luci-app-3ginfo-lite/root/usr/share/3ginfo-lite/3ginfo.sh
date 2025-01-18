@@ -463,7 +463,7 @@ else
  ss_rsrq=$(echo $result | cut -d',' -f1)
  ss_rsrp=$(echo $result | cut -d',' -f2)
  ss_sinr=$(echo $result | cut -d',' -f3)
- result=$(sms_tool -D -d /dev/ttyUSB3 at 'AT+CESQ' | grep '+CESQ:' | cut -d',' -f7-9)
+ result=$(sms_tool -D -d $DEVICE at 'AT+CESQ' | grep '+CESQ:' | cut -d',' -f7-9)
  ss_rsrq=$(echo $result | cut -d',' -f1)
  ss_rsrp=$(echo $result | cut -d',' -f2)
  ss_sinr=$(echo $result | cut -d',' -f3)
